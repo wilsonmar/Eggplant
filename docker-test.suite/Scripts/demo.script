@@ -1,0 +1,1100 @@
+﻿to handle hook_before_scenario
+	Log "****************** Befor Scenario Starts Here: Initialization of Power Point******************"
+	TraceScreen Off
+	Try
+		TypeText  altKey,controlKey, "z"
+		TypeText WindowsKey , "r" // to open run command 
+		TypeText DeleteKey // delete the previous data 
+		TypeText "powerpnt.exe",Return
+	Catch exception
+		LogError "something went wrong",exception
+		put the abbrev dateitems into screenshotName
+		CaptureScreen(name:screenshotName)
+		Exit all
+	End try
+	Log "****************** Before Scenario Ends Here: Power Point Open commands triggered ******************"
+end hook_before_scenario
+
+to handle hook_before_feature
+	Try
+		if ImageFound(imageName:"windows_security_warning/security_warning", waitFor:5)
+			Click "windows_security_warning/ok_button"
+			wait 5
+		end if
+		
+	Catch exception
+		LogError "Something went wrong "&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end hook_before_feature
+
+to handle hook_after_scenario
+	Log "****************** After Scenario Starts Here: Closing Power Point******************"
+	put "After Scenario: Close PPT and Generate Report" into Description
+	put "Power point should get closed" into Expected
+	Set the searchRectangle to ()
+	Repeat while ImageFound("close_Icon")
+		If ImageFound(4, "close_Icon")
+			click "close_Icon"
+			If ImageFound(4, "Microsoft_Close_Dialogue")
+				
+				if ImageFound(4, "dont_save_button")
+					click "dont_save_button"	
+					put "power point closed" into Actual
+					LogSuccess Actual
+					put Reporter("Steps",scenarioName,Description, Expected, Actual, "Pass","Yes") into flag
+				else
+					put "dont_save_button image not found" into Actual
+					Log Actual
+					put Reporter("Steps",scenarioName,Description, Expected, Actual, "Fail","Yes") into flag
+				End If
+				if ImageFound(1, "recovery_dialog")
+					click "recovery_dialog"	
+					put "power point closed" into Actual
+					LogSuccess Actual
+					put Reporter("Steps",scenarioName,Description, Expected, Actual, "Pass","Yes") into flag
+					
+				End If
+			else
+				put "Microsoft close ppt dialog image not found" into Actual
+				Log Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","Yes") into flag
+			End If
+			
+		else
+			put "Close ppt image not found" into Actual
+			put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","Yes") into flag
+			Log "Close ppt image not found"
+		End If	
+	End repeat
+	Log "****************** After Scenario Completed: Power point closed******************"
+end hook_after_scenario
+to handle Power_point_is_open
+	Log "****************** Verification if power point is open******************"
+	put "Verify if power point is open" into Description
+	put "Power point should be open on screen" into Expected
+	Try
+		If ImageFound(10, "powerpointIcon")
+			if ImageFound(20,"PowerPointHeader")
+				put "Power point is open on screen" into Actual
+				Log "Power point is open on screen"
+				put Reporter("Steps",scenarioName, Description, Expected, Actual,"Pass","No") into flag
+				
+			else 
+				
+				Click "powerpointIcon"
+				WaitFor 10, "PowerPointHeader"
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end If
+		Else
+			Log "powerpoint not open"
+			TypeText WindowsKey , "r" // to open run command 
+			TypeText DeleteKey // delete the previous data 
+			TypeText "powerpnt.exe",Return
+			wait 10
+		End If	
+	Catch exception
+		LogError "Something went wrong "& exception
+	End try
+	Log "****************** Verificationpower point open completed*****************"
+end Power_point_is_open
+
+to handle User_opens_NUM_NUM_template_in_new_vi
+	params num1, num2
+	Set the searchRectangle to ()
+	Set flag to false
+	put  "Open"&num1&":"&num2&" template in new VI" into Description
+	put  "template should be open" into Expected
+	if num1=16
+		put Library("openWideScreenTemplate") into flag
+	else
+		put Library("openStandardSlide") into flag
+	end if
+	if flag
+		put "template open in new VI"  into Actual
+		put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+		
+	else
+		put "Was not able to open template in new VI"  into Actual
+		put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+	end if
+	Set the searchRectangle to ()
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)	
+	
+end User_opens_NUM_NUM_template_in_new_vi
+
+to handle User_clicks_on_New_slide_and_adds_STR
+	params slideToOpen
+	put "Add "& slideToOpen &" from new slide option in ribbon" into Description
+	put  "Slide "& slideToOpen &" should get added to presentation" into Expected
+	put Library("openSlideLayoutFromRibbon",slideToOpen) into flag
+	if flag
+		put slideToOpen& "  was open on screen" into Actual
+		LogSuccess Actual
+		put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+	else
+		put slideToOpen& "  was not open on screen"  into Actual
+		LogError Actual
+		put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+	end if
+	
+end User_clicks_on_New_slide_and_adds_STR
+to handle User_checks_STR_is_inserted_on_presentation
+	params layoutType
+	Set the SearchRectangle to ()
+	put "Verify white title is inserted on presentation" into Description
+	put  "White title slide should get inserted " into Expected
+	Try
+		if layoutType="Blue Title"
+			if ImageFound(imageName:"blue_title_default", waitFor:10)
+				put "blue title slide inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+			else
+				put "blue title slide not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else if layoutType="White Title"
+			if ImageFound(imageName:"white_title_default", waitFor:10)
+				put "white title slide inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+			else
+				put "white title slide not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else if layoutType="Blue Agenda"
+			if ImageFound(imageName:"blue_agenda_default", waitFor:10)
+				put "blue title slide inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+			else
+				put "blue title slide not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else if layoutType="White Agenda"
+			if ImageFound(imageName:"white_agenda_default", waitFor:10)
+				put "white agenda layout inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag
+				
+			else
+				put "white agenda layout not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else if layoutType="White Basic"
+			if ImageFound(imageName:"white_basic_default", waitFor:10)
+				put "white basic layout inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag	
+			else
+				put "white basic layout not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else if layoutType="Blue Basic"
+			if ImageFound(imageName:"blue_basic_default", waitFor:10)
+				put "blue basic layout inserted on presenation" into Actual
+				LogSuccess Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Pass","No") into flag	
+			else
+				put "blue basic layout not inserted on presenation" into Actual
+				LogError Actual
+				put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+			end if
+		end if
+	Catch exception
+		LogError "Something went wrong "& exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end User_checks_STR_is_inserted_on_presentation
+to handle inserts_STR_textblock_from_textblocks_panel
+	params textBlockName
+	Set the SearchRectangle to ()
+	put Library("insertTextBlockFromPanel",textBlockName) into flag
+	if flag
+		put "clicked on textblock  " &textBlockName& " from panel" into Actual
+		LogSuccess Actual
+	else
+		put "unable to insert  textblock  " &textBlockName& " from panel" into Actual
+		LogError Actual
+	end if
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end inserts_STR_textblock_from_textblocks_panel
+to handle Verifies_STR_textblock_inserted_on_slide
+	params textBlockName
+	Set the SearchRectangle to ()
+	put Library("verifyTextBlockOnslide",textBlockName) into flag
+	if flag
+		put "Text block  " &textBlockName& " inserted in slide and properties are acorrect and as expected " into Actual
+		LogSuccess Actual
+	else
+		put "Text block "&textBlockName& " not inserted and  properties are not correct and as expected " into Actual
+		LogError Actual
+	end if
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	
+end Verifies_STR_textblock_inserted_on_slide
+to handle User_Selects_Both_TextBlocks
+	Set the SearchRectangle to ()
+	Set the SearchRectangle to (400,320,1800,950)
+	Try
+		if ImageFound(imageName:"key_takeaway_upperline", waitFor:5)
+			//MoveTo "key_takeaway_upperline"
+			KeyDown controlKey
+			Click "key_takeaway_upperline"
+			KeyUp controlKey	
+			wait 1
+		end if		
+	Catch exception
+		LogError "Something went wrong, Please see screenshot "&exception
+		put the abbrev dateitems into screenshotName
+		CaptureScreen(name:screenshotName)		
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)	
+end User_Selects_Both_TextBlocks
+
+to handle User_Clicks_on_STR_using_shortcut_key
+	params functionName
+	Try
+		if functionName ="Copy Position"
+			TypeText controlKey,1
+			LogSuccess "Pressed shortcut key for copy position"
+		else if functionName="Paste position"
+			TypeText controlKey,2
+			LogSuccess "Pressed shortcut key for paste position"
+		else
+			LogError "Please send valid function Name , no definition found for: "&functionName
+		end if
+	Catch exception
+		LogError "Something went wrong"&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	
+end User_Clicks_on_STR_using_shortcut_key
+to handle User_Clicks_on_STR_button
+	params buttonName
+	Set the SearchRectangle to ()
+	put "Click on "&buttonName&" option from ribbon" into Description
+	put  buttonName&" option clicked" into Expected
+	Put Library("clickArrangeFunction",buttonName) into flag
+	if flag
+		put "clicked on "&buttonName&" option from ribbon" into Actual
+		LogSuccess Actual
+	else
+		put buttonName&" option not clicked from ribbon"into Actual
+		LogError Actual
+	end if
+	MoveTo (800,350)
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	
+end User_Clicks_on_STR_button
+
+to handle Verifies_objects_are_swapped
+	Set the SearchRectangle to ()
+	put "Verify objects are swapped" into Description
+	put  "Objects should get swapped" into Expected
+	Try
+		if ImageFound(imageName:"swap_objects/swapped_objects_key_takeaway_list", waitFor:5)
+			LogSuccess "Objects are swapped"
+		else
+			LogError "Objects are not swapped"	
+		end if
+	Catch exception
+		LogError "Something went wrong "&exception
+	End try	
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end Verifies_objects_are_swapped
+to handle User_Selects_Both_TextBlocks
+	Set the SearchRectangle to ()
+	Set the SearchRectangle to (400,320,1800,950)
+	Try
+		if ImageFound(imageName:"key_takeaway_upperline", waitFor:5)
+			//MoveTo "key_takeaway_upperline"
+			KeyDown controlKey
+			Click "key_takeaway_upperline"
+			KeyUp controlKey	
+			wait 1
+		end if		
+	Catch exception
+		LogError "Something went wrong, Please see screenshot "&exception
+		put the abbrev dateitems into screenshotName
+		CaptureScreen(name:screenshotName)		
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)	
+end User_Selects_Both_TextBlocks
+
+to handle User_verifies_position_of_text_block_changed
+	Try
+		Set the SearchRectangle to ()
+		if ImageFound(imageName:"copy_paste_position/key_takeaway_list_changed_position", waitFor:3)
+			LogSuccess "Position of keytakeaway block changed"
+			Set the SearchRectangle to (1500,150,1900,1000)
+			if ImageFound(imageName:"format_shapes/format_header", waitFor:2)
+				click "format_shapes/properties_tab"
+				if ImageFound(imageName:"Format_Shapes/positions_section_open", waitFor:1)
+					Log "positons section is already open"
+				else
+					click "Format_Shapes/position_section"
+				end if
+				if ImageFound(imageName:"copy_paste_position/list_box_position", waitFor:3)
+					LogSuccess "Position of key akeaway block is as expected after paste position"
+				else
+					LogError "Position of key takeaway is not as expected after paste position"
+				end if
+			else
+				LogError "format shape pane is not open on slide"
+			end if
+			else
+			LogError "Position of key takeaway block not changed"
+		end if
+		Set the SearchRectangle to (1600,150,1920,400)
+		click "Format_Shapes/cross_icon"
+		Catch exception
+		LogError "Something went wrong"&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	
+end User_verifies_position_of_text_block_changed
+
+to handle User_Selects_Key_takeaway_block_and_checks_its_position
+	Set the SearchRectangle to ()
+	Try
+		click "footer_mckinsey_company"
+		Set the SearchRectangle to (400,330,1200,1000)
+		if ImageFound(imageName:"key_takeaway_upperline", waitFor:3)
+			RightClick "key_takeaway_upperline"
+			Click imageName:"Format_Shapes/format_shape_context_click", waitFor:3
+			Set the SearchRectangle to (1500,150,1900,1000)
+			if ImageFound(imageName:"Format_Shapes/format_header", waitFor:3)
+				if ImageFound(imageName:"Format_Shapes/properties_tab", waitFor:2)
+					click "Format_Shapes/properties_tab"
+					if ImageFound(imageName:"Format_Shapes/positions_section_open", waitFor:1)
+						Log "positons section is already open"
+					else
+						click "Format_Shapes/position_section"
+					end if
+					if ImageFound(imageName:"copy_paste_position/key_takeaway_position", waitFor:3)
+						LogSuccess "Position of key akeaway block is as expected"
+					else
+						LogError "Position of key takeaway is not as expected"
+					end if
+					
+				else
+					LogError "Format shapes pane not opened"
+				end if
+			end if
+		end if
+	Catch exception
+	LogError "Something went wrong"&exception
+End try
+put the abbrev dateitems into screenshotName
+CaptureScreen(name:screenshotName)
+end User_Selects_Key_takeaway_block_and_checks_its_position
+to handle User_Inserts_STR_from_fixed_elements_in_Basic_Slide_STR
+	params elementName, value
+	put "insert element :"&elementName&" into agenda slide and verify inserted correctly with value"&value into Description
+	put "element :"&elementName&" ishould be inserted in to tile slide" into Expected
+	set the SearchRectangle to ()
+	Try
+		if elementName="Footnote"
+			if ImageFound(text:"Basic", waitFor:1)
+				click text:"Basic"
+			else
+				click text: "Click"
+			end if
+		end if
+		if ImageFound(imageName:"fixed_elements_options", waitFor:3)
+			Log "fixed elements dropdown open for presentation"
+		else
+			click "fixed_elements_ribbon"
+		end if
+		put Library("addFixedElement",elementName) into flag
+		if flag
+			if elementName="Sticker"
+				set the SearchRectangle to ()
+				put Library("addSticker",value) into flag
+				if flag
+					Log "Sticker inserted on slide, time to verify its value"
+					if ImageFound(imageName:"cross_icons", waitFor:5)
+						click "cross_icons"
+						set the SearchRectangle to ()
+						set the SearchRectangle to (300,300,1600,400)
+						if ImageFound(text:value, contrast:On, waitFor:10)
+							click text:value
+							put "Sticker: "&value&" added to slide" into Actual
+							LogSuccess Actual
+							put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+						else
+							put "Sticker: "&value&" not found in slide" into Actual
+							LogError Actual
+							put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+							
+						end if
+					else
+						put "Unable to cross icon from popup" into Actual
+						LogError Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					end if
+					
+				else
+					put "Unable to insert sticke on slide from popup" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if	
+				
+			else if elementName="Footnote"
+				put Library("insertFootNote",value) into flag
+				if flag
+					set the SearchRectangle to ()
+					set the SearchRectangle to (430,850,1800,1000)
+					if ImageFound(imageName:"footnote_basic_slide", waitFor:5)
+						put "footnote added to slide" into Actual
+						LogSuccess Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+						
+					else
+						put "footnote not added to slide" into Actual
+						LogError Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					end if
+				else
+					put "Unable to insert footnote to slide" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					
+				end if
+				
+			else if elementName="Slide Note"
+				put Library("insertSlideNote",value) into flag
+				if flag
+					set the SearchRectangle to ()
+					set the SearchRectangle to (430,850,1800,1000)
+					if ImageFound(imageName:"slide_note_on_slide", waitFor:5)
+						click "slide_note_on_slide"
+						TypeText controlKey,"a"
+						
+						put "slide note added to slide" into Actual
+						LogSuccess Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag		
+					else
+						put "slide note not added to slide" into Actual
+						LogError Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					end if
+					
+				else
+					put "Unable to insert footnote to slide" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					
+				end if
+			else if elementName="Slide Title"
+				if ImageFound(imageName:"slide_title_basic_layout", waitFor:5)
+					TypeText value
+					put "Slide Title Inserted in BAsic layout" into Actual
+					LogSuccess Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+				else
+					put "Slide title not inserted basic layout" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if
+				
+			else if elementName="Slide Subtitle"
+				
+				if ImageFound(imageName:"slide_subtitle_basic_layout", waitFor:5)
+					TypeText value
+					put "Slide Subtitle Inserted in BAsic layout" into Actual
+					LogSuccess Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+					
+				else
+					put "Slide subtitle not inserted basic layout" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if
+				
+			else if elementName="Tracker"
+				if ImageFound(imageName:"tracker_basic_layout", waitFor:5)
+					TypeText value
+					put "Tracker Inserted in BAsic layout" into Actual
+					LogSuccess Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+					
+				else
+					put "Tracker not inserted basic layout" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if
+			else if elementName="Above Chart Exhibit Title"
+				if ImageFound(imageName:"acet_basic_layout", waitFor:5)
+					TypeText value
+					put "ACET Inserted in BAsic layout" into Actual
+					LogSuccess Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+					
+				else
+					put "ACET not inserted basic layout" into Actual
+					LogError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if
+			else if elementName="Legend"
+				put Library("addLegend",value) into flag
+				if flag
+					if ImageFound(imageName:"square_legend_basic_slides", waitFor:5)
+						put "Legend inseted on basic slide" into Actual
+						LogSuccess Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+						
+					else
+						put "Legend not inserted on basic slide" into Actual
+						LogError Actual
+						put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+					end if
+					
+				end if
+			else if elementName="Source"
+				if ImageFound(imageName:"source_basic_slides", waitFor:10)
+					TypeText Value
+					put "Source inserted on basic slide" into Actual
+					LogSuccess Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag
+				else
+					put "Source not inserted on basic slide" into Actual
+					LoError Actual
+					put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag
+				end if
+				
+			end if
+			
+		else
+			put "unable to insert element on slide" into Actual
+			LogError Actual
+			put Reporter("Steps",scenarioName, Description, Expected, Actual, "Fail","No") into flag
+		end if
+	Catch exception
+		LogError "Something went wrong "&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end User_Inserts_STR_from_fixed_elements_in_Basic_Slide_STR
+to handle moves_element_to_different_position
+	Set the SearchRectangle to ()
+	Try
+		MoveTo "upper_box_line"
+		click "upper_box_line"
+		MouseButtonDown 1 
+		drag (1100,520)
+		//MoveTo (734,230)
+		drop (1100,520)
+	Catch exception
+		LogError "Something went wrong"& exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end moves_element_to_different_position
+to handle User_check_STR_is_reset_to_original_state_in_basic_slide_NUM_NUM
+	params elementName, num1, num2
+	set the SearchRectangle to ()
+	//click "footer_mckinsey_company"
+	Try
+		click "outside_slide_click"
+		if elementName="Slide Title"
+			if num1=16
+				set the SearchRectangle to (410,220,1800,280)
+			else
+				set the SearchRectangle to (580,220,1630,280)
+			end if
+			if ImageFound(text:"Basic Slide Title", waitFor:5)
+				click text:"Basic Slide Title"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				
+				if ImageFound(imageName:"georgia_heading_font", waitFor:5)
+					put "Slide Title found with correct font type Georgia Heading" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title not found with correct font type Georgia Heading" into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"bold_font_ribbon", waitFor:5)
+					put "Slide Title found with correct font property bold" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title not found with correct font property bold" into Actual
+					LogError Actual
+				end if
+				if num1=16
+					if ImageFound(imageName:"font_size_25_selected", waitFor:5)
+						put "Slide Title found with correct font size 25" into Actual
+						LogSuccess Actual
+					else
+						put "Slide Title not found with correct font size 25" into Actual
+						LogError Actual
+					end if
+					
+				else
+					if ImageFound(imageName:"font_size_22_selected", waitFor:5)
+						put "Slide Title found with correct font size 22" into Actual
+						LogSuccess Actual
+					else
+						put "Slide Title not found with correct font size 22" into Actual
+						LogError Actual
+					end if	
+				end if
+			else
+				put "Unable to find slide title to default position on slide" into Actual
+				LogError Actual
+				
+			end if
+		end if
+		
+		if elementName="Slide Subtitle"
+			if num1=16
+				set the SearchRectangle to (410,280,1800,310)
+			else
+				set the SearchRectangle to (580,280,1630,310)
+			end if
+			//set the SearchRectangle to (580,280,1630,310)
+			if ImageFound(text:"Basic Slide Subtitle", waitFor:5)
+				click text:"Basic Slide Subtitle"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put "Slide Title found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put "Slide Title found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title found with font property bold" into Actual
+					LogError Actual
+				end if
+				if num1=16
+					if ImageFound(imageName:"font_size_18_selected", waitFor:5)
+						put "Slide Title found with correct font size 18" into Actual
+						LogSuccess Actual
+					else
+						put "Slide Title not found with correct font size 18" into Actual
+						LogError Actual
+					end if
+					
+				else
+					if ImageFound(imageName:"font_size_16_selected", waitFor:5)
+						put "Slide Title found with correct font size 16" into Actual
+						LogSuccess Actual
+					else
+						put "Slide Title not found with correct font size 16" into Actual
+						LogError Actual
+					end if	
+				end if
+			else
+				put "unable to find subtitle to default position on slide" into Actual
+				LogError Actual	
+			end if
+		end if
+		if elementName="Tracker"
+			Set the SearchRectangle to (1400,160,1800,220)
+			if ImageFound(text:"Page Tracker", waitFor:5)
+				click text:"Page Tracker"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put "Slide Title found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put "Slide Title found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title found with font property bold" into Actual
+					LogError Actual
+				end if
+				
+				if ImageFound(imageName:"font_size_8_selected", waitFor:5)
+					put"Page Tracker found with correct font size 9" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for page tracker was different from 9" into Actual
+					LogError Actual
+				end if	
+				
+			else
+				Put "Unable to find Tracker to Default position" into Actual
+				LogError Actual
+			end if
+		end if
+		if elementName="Sticker"
+			Set the SearchRectangle to (400,300,1600,400)
+			if ImageFound(text:"Preliminary", waitFor:5)
+				click text:"Preliminary"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put "Slide Title found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"bold_font_ribbon", waitFor:5)
+					put "Slide Title found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put "Slide Title found with font property bold" into Actual
+					LogError Actual
+				end if
+				
+				if ImageFound(imageName:"font_size_9_selected", waitFor:5)
+					put"Page Tracker found with correct font size 9" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for page tracker was different from 9" into Actual
+					LogError Actual
+				end if	
+				
+			else
+				Put "Unable to find Tracker to Default position" into Actual
+				LogError Actual
+			end if
+		end if
+		
+		if elementName="Above Chart Exhibit Title"
+			//Set the SearchRectangle to (400,330,920,440)
+			
+			if ImageFound(imageName:"acet_on_slide", waitFor:5)
+				LogSuccess "acet found on expected place after reset"
+				click "acet_on_slide"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put elementName &" found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put elementName &"  not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put elementName &"  found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put elementName &" not found with font property bold" into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"font_size_14+_selected", waitFor:5)
+					put elementName &" found with correct font size 16" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for " &elementName &" was different from 16" into Actual
+					LogError Actual
+				end if	
+				
+			else
+				Put "ACET was not present at expected place" into Actual
+				LogError Actual	
+			end if	
+		end if
+		
+		if elementName="Source"
+			Set the SearchRectangle to (350,950,1500,1000)
+			if ImageFound(text:"Confidential", waitFor:5)
+				LogSuccess "Source text found at correct place"
+				click text:"Confidential"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put elementName &" found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put elementName &"  not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put elementName &"  found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put elementName &" not found with font property bold" into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"font_size_8_selected", waitFor:5)
+					put elementName &" found with correct font size 9" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for " &elementName &" was different from 9" into Actual
+					LogError Actual
+				end if	
+			else
+				LogError "Source text not found at expected [place]"
+			end if
+		end if
+		
+		if elementName="Slide Notes"
+			Set the SearchRectangle to (350,850,1500,1000)
+			if ImageFound(imageName:"slide_note_on_slide", waitFor:5)
+				Click "slide_note_on_slide"
+				
+				LogSuccess "Slide Notes text found at correct place"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put elementName &" found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put elementName &"  not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put elementName &"  found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put elementName &" not found with font property bold" into Actual
+					LogError Actual
+				end if
+				
+				if ImageFound(imageName:"font_size_8_selected", waitFor:5)
+					put elementName &" found with correct font size 9" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for " &elementName &" was different from 9" into Actual
+					LogError Actual
+				end if	
+			else
+				LogError "Source text not found at expected [place]"
+			end if
+		end if
+		if elementName="Footnote"
+			Set the SearchRectangle to (350,850,1500,1000)
+			if ImageFound(imageName:"footnote_basic_slide", waitFor:5)
+				Click "footnote_basic_slide"
+				
+				LogSuccess "foot Notes text found at correct place"
+				TypeText controlKey,"a"
+				set the SearchRectangle to ()
+				set the SearchRectangle to (300,60,1000,150)
+				if ImageFound(imageName:"arial_body_font", waitFor:5)
+					put elementName &" found with correct font type Arial body" into Actual
+					LogSuccess Actual
+				else
+					put elementName &"  not found with correct font type Arial body " into Actual
+					LogError Actual
+				end if
+				if ImageFound(imageName:"normal_font_ribbon", waitFor:5)
+					put elementName &"  found with correct font property not bold" into Actual
+					LogSuccess Actual
+				else
+					put elementName &" not found with font property bold" into Actual
+					LogError Actual
+				end if
+				
+				if ImageFound(imageName:"font_size_8_selected", waitFor:5)
+					put elementName &" found with correct font size 9" into Actual
+					LogSuccess Actual
+				else
+					put "Font size for " &elementName &" was different from 9" into Actual
+					LogError Actual
+				end if	
+			else
+				LogError "footnote text not found at expected [place]"
+			end if
+	end if
+	Catch exception
+	LogError "Something went wrong " & exception
+End try
+put the abbrev dateitems into screenshotName
+CaptureScreen(name:screenshotName)
+end User_check_STR_is_reset_to_original_state_in_basic_slide_NUM_NUM
+to handle User_changes_color_of_element
+	put "change fot color to voilet" into Description
+	put "font color should get changed" into Expected
+	Try
+		Set the SearchRectangle to ()
+		TypeText controlKey,"a"
+		If ImageFound(imageName:"font_color_dropdown", waitFor:5)
+			click "Color_Text"
+			If ImageFound(imageName:"Voilet_color_in_menu", waitFor:5)
+				click "Voilet_color_in_menu"
+				put "font color changed to voilet" into Actual
+				LogSuccess Actual
+				put reporter(Steps,"PPT_001", Description, Expected,Actual, "Pass","No") into flag
+			else
+				put "font color not changed to voilet" into Actual
+				LogError Actual
+				put reporter(Steps,"PPT_001", Description, Expected,Actual, "Fail","No") into flag
+			end if
+		end if
+		Catch exception
+		LogError "Something went wrong "&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end User_changes_color_of_element
+
+to handle User_clicks_outside_slide
+	Set the SearchRectangle to ()
+	click "outside_slide_click"
+end User_clicks_outside_slide
+
+to handle User_inserts_foot_note_STR_using_shortcut_key
+	params Value
+	Try
+		Set the SearchRectangle to ()
+		Click text:"Click"
+		TypeText controlKey,altKey,"f"
+		if ImageFound(imageName:"footnote_header_popup", waitFor:5)
+			TypeText Value
+			click add_button_popup
+			Set the SearchRectangle to (150,800,1400,1000)
+			if ImageFound(imageName:"footnote_basic_slide", waitFor:3)
+				LogSuccess "Foot note added to slide"
+				click "footnote_basic_slide"
+			else
+				LogError "Foot note not added to slide"
+			end if
+		end if
+	Catch exception
+		LogError "Something went wrong "&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	
+end User_inserts_foot_note_STR_using_shortcut_key
+
+to handle User_changes_color_of_element
+	put "change fot color to voilet" into Description
+	put "font color should get changed" into Expected
+	Try
+		Set the SearchRectangle to ()
+		TypeText controlKey,"a"
+		If ImageFound(imageName:"font_color_dropdown", waitFor:5)
+			click "Color_Text"
+			If ImageFound(imageName:"Voilet_color_in_menu", waitFor:5)
+				click "Voilet_color_in_menu"
+				put "font color changed to voilet" into Actual
+				LogSuccess Actual
+				put reporter(Steps,"PPT_001", Description, Expected,Actual, "Pass","No") into flag
+			else
+				put "font color not changed to voilet" into Actual
+				LogError Actual
+				put reporter(Steps,"PPT_001", Description, Expected,Actual, "Fail","No") into flag
+			end if
+		end if
+	Catch exception
+		LogError "Something went wrong "&exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end User_changes_color_of_element
+to handle user_changes_fontsize_of_selected_text_to_NUM
+	params num1
+	Set the searchRectangle to ()
+	put "change fot size to 44" into Description
+	put "font size should get changed" into Expected
+	Try
+		if ImageFound(imageName:"font_size_dropdown", waitFor:5)
+			Click "font_size_dropdown"
+			if ImageFound(imageName:"text_font_44", waitFor:5)
+				click "text_font_44"
+				if ImageFound(imageName:"Selected_Text_Font_44", waitFor:5)
+					Put "Font color changed to 44" into Actual
+					LogSuccess Actual
+					put reporter(Steps,"PPT_001", Description, Expected,Actual, "Pass","No") into flag
+					
+					else
+					put "Font size not changed to 44" into Actual
+					LogError Actual
+					put reporter(Steps,"PPT_001", Description, Expected,Actual, "Fail","No") into flag
+				end if
+			end if
+		end if
+		Catch exception
+		LogError "Something went wrong "& exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end user_changes_fontsize_of_selected_text_to_NUM
+to handle User_changes_font_type_to_STR
+	params str1
+	Set the SearchRectangle to ()
+	put "change font type of selected text to Arohni" into Description
+	put "font type should get changed" into Expected
+	Try
+		Set the SearchRectangle to (200,30,800,150)
+		If ImageFound(imageName:"font_type_dropdown_newvi", waitFor:5)
+			click "font_type_dropdown_newvi"
+			Set the SearchRectangle to (200,30,900,900)
+			if ImageFound(imageName:"Aharoni_font", waitFor:5)
+				click "Aharoni_font"
+				if ImageFound(imageName:"Aharoni_selected", waitFor:5)
+					put "font changed to Aharoni " into Actual
+					LogSuccess Actual
+					put reporter(Steps,"PPT_001", Description, Expected, Actual, "Pass","No") into flag
+					
+				else
+					put "font not changed to Aharoni " into Actual
+					LogError Actual
+					put reporter(Steps,"PPT_001", Description, Expected, Actual, "Fail","No") into flag
+				end if
+			else
+				put "Aharoni font image not present in dropdown" into Actual
+				LogError Actual
+				put reporter(Steps,"PPT_001", Description, Expected, Actual, "Fail","No") into flag
+			end if
+		else
+			put "font type dropdown image not found on ribbon" into Actual
+			LogError Actual
+			put reporter(Steps,"PPT_001", Description, Expected, Actual, "Fail","No") into flag	
+		End If
+		Catch exception
+		LogError "Something went wrong "& exception
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+end User_changes_font_type_to_STR
+to handle User_presses_keys_STR
+	Log "****************** Steps to press shortcut key starts here******************"
+	//params keysToPress
+	put "Press short cut key" into Description
+	put "Short cut key should get pressed" into Expected
+	Try
+		TypeText ControlKey,AltKey , "r" 
+		put "Keys Pressed" to Actual
+		put reporter(Steps,scenarioName, Description, Expected,Actual, "Pass","No") into flag	
+	Catch exception
+		put "Something went wrong "&exception into Actual
+		put reporter(Steps,scenarioName, Description, Expected,Actual, "Fail","No") into flag	
+	End try
+	put the abbrev dateitems into screenshotName
+	CaptureScreen(name:screenshotName)
+	Log "****************** Steps to press short cut key ends here******************"
+end User_presses_keys_STR
