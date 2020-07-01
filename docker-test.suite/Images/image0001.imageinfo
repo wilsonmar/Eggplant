@@ -1,0 +1,20 @@
+﻿{
+    CaptureDate = "2020-07-01 14:20:16 +0000";
+    CaptureHost = "Chrome in Docker";
+    CaptureScreenSize =     (
+        1360,
+        1020
+    );
+    HasAlpha = 1;
+    HotSpotX = 26;
+    HotSpotY = 16;
+    LastKnownLocationX = 0;
+    LastKnownLocationY = 0;
+    OriginalLocationX = 841;
+    OriginalLocationY = 540;
+    Precise = 0;
+    Pulsing = 0;
+    Scale = 1;
+    tags =     (
+    );
+}

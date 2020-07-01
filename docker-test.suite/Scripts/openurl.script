@@ -6,6 +6,10 @@ TypeText AltKey, F2
 
 Wait 1
 
+Try
+	Click imageName:"image0001.png", waitFor:8
+End Try
+
 TypeText "google-chrome"&&"http://nopcommerce.testplant.com/",return
 
 waitfor 20,"refresh"
