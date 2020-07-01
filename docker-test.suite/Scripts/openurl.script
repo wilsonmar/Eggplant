@@ -2,6 +2,7 @@
 // Open run window on url:
 // url="http://nopcommerce.testplant.com/"
 // Instead of google-chrome, opera, firefox, 
+# Open Window:
 TypeText AltKey, F2
 
 Wait 1
@@ -12,6 +13,8 @@ End Try
 
 TypeText "google-chrome"&&"http://nopcommerce.testplant.com/",return
 
-waitfor 20,"refresh"
+WaitFor 8.0, "image0002"
 
-typetext Altkey,f10
+# Close browser:
+typetext Altkey,f4
+# At beginning here.
